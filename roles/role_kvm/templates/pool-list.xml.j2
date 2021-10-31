@@ -1,0 +1,22 @@
+<pool type='{{ item.type }}'>
+  <name>{{ item.name }}</name>
+  <capacity unit='bytes'>0</capacity>
+  <allocation unit='bytes'>0</allocation>
+  <available unit='bytes'>0</available>
+  {% if item.pool == 'nvram' %}
+ <source>
+  </source>
+  <target>
+    <path>{{ item.dev }}</path>
+  </target>
+</pool>
+  {% else %}
+ <source>
+    <name>{{ item.pool }}</name>
+    <format type='lvm2'/>
+  </source>
+  <target>
+    <path>{{ item.dev }}</path>
+  </target>
+</pool>
+  {% endif %}

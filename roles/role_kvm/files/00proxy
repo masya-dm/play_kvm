@@ -1,0 +1,4 @@
+Acquire::http::Proxy "http://proxy:3128";
+Acquire::https::Proxy "http://proxy:3128";
+Acquire::https::Verify-Peer "false";
+

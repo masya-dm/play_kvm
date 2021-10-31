@@ -1,0 +1,61 @@
+---
+
+- name: "Prepare : Set time zone"
+  shell: "cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime"
+
+- name: "Prepare : Update system"
+  apt:
+   update_cache: yes
+   upgrade: yes
+
+- name: "Prepare : Edit /etc/sudoers"
+  lineinfile:
+    path: /etc/sudoers
+    regexp: '^%sudo'
+    line: '%sudo ALL=(ALL:ALL) NOPASSWD: ALL'
+
+- name: "Prepare : Edit hosts file"
+  lineinfile:
+    path: /etc/hosts
+    regexp: '^127.0.1.1'
+    line: '{{ ansible_default_ipv4.address }} {{ inventory_hostname }}'
+
+- name: "Prepare : Install cpufrequtils"
+  apt:
+   name: 'cpufrequtils'
+   state: present
+
+- name: "Prepare : Copy cpufrequtils"
+  copy:
+    src: '{{ role_path }}/files/cpufrequtils'
+    dest: /etc/default/
+
+- name: "Prepare : Disable Ondemand.service"
+  systemd:
+    name: 'ondemand.service'
+    state: stopped
+    enabled: no
+    masked: yes
+
+- name: "Prepare : Set LVM settings"
+  lineinfile:
+    path: /etc/lvm/lvm.conf
+    regexp: 'issue_discards'
+    line: 'issue_discards = 0'
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_version > '18.04'
+
+- name: "Prepare : Rename default netplan file"
+  shell: "FNAME=$(ls -A /etc/netplan/) && mv /etc/netplan/$FNAME /etc/netplan/$FNAME~"
+
+- name: "Prepare : Configure Network"
+  template:
+    src: netplan.yml.j2
+    dest: /etc/netplan/50-cloud-init.yaml
+
+- name: "Prepare : Netplan generate and restart"
+  shell: "netplan generate && netplan apply"
+
+- name: "Prepare : Set proxy for apt"
+  copy:
+    src: '{{ role_path }}/files/00proxy'
+    dest: /etc/apt/apt.conf.d/

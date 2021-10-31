@@ -1,0 +1,12 @@
+---
+- name: "Define-vm : Copy vm's xml files"
+  copy:
+    src: "{{ item }}"
+    dest: /tmp/vms/
+  with_fileglob:
+    - "{{ role_path }}/files/vms-07/*.xml"
+
+- name: "Define-vm : Define virtual machine from files/vms"
+  shell: "for i in $(find /tmp/vms -type f -name *.xml); do virsh define $i; done"
+  ignore_errors: yes
+

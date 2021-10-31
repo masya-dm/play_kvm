@@ -1,0 +1,37 @@
+---
+
+#kvm if config
+net_if:
+   - eno5
+   - eno6
+
+# vlan's number match to bridges and bonds in netplan and bridges names in virsh net-list 
+vlan:
+   - 451
+   - 452
+   - 453
+   - 455
+   - 480
+   - 482
+   - 483
+   - 485
+
+# network settings
+host_ip_mask: 10.5.80.10/24
+gw_ip: 10.5.80.1
+dns_ip:
+   - 10.5.82.32
+   - 10.5.82.33
+search_domain: cup.1cupis.org
+
+#virsh pool config
+virt_pool:
+   - name: "ssd"
+     pool: "ssd"
+     dev: "/dev/ssd"
+     type: "logical"
+
+   - name: "nvram"
+     pool: "nvram"
+     dev: "/var/lib/libvirt/qemu/nvram"
+     type: "dir"

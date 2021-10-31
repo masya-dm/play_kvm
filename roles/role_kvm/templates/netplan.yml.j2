@@ -1,0 +1,50 @@
+network:
+    version: 2
+    renderer: networkd
+ 
+    ethernets:
+{% for item in net_if %}
+      {{ item }}: {}
+{% endfor %}
+
+    bonds:
+        bond0:
+            addresses: []
+            interfaces:
+{% for item in net_if %}
+            - {{ item }}
+{% endfor %}
+            parameters:
+                lacp-rate: fast
+                mode: 802.3ad
+                transmit-hash-policy: layer3+4
+ 
+    vlans:
+{% for item in vlan %}
+        bond0.{{ item }}:
+            id: {{ item }}
+            link: bond0
+            addresses: []
+{% endfor %}
+ 
+    bridges:
+        br0:
+            addresses:
+            - {{ host_ip_mask  }}
+            gateway4: {{ gw_ip  }}
+            interfaces:
+            - bond0
+            nameservers:
+                addresses:
+{% for item in dns_ip %}
+                - {{ item }}
+{% endfor %}
+                search:
+                - {{ search_domain  }}
+
+{% for item in vlan %}
+        br{{ item }}:
+            addresses: []
+            interfaces:
+            - bond0.{{ item }}
+{% endfor %}

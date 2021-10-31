@@ -1,0 +1,44 @@
+---
+- name: "Config : Stop and destroy virsh default network"
+  shell: "virsh net-destroy --network default && virsh net-undefine --network default"
+  ignore_errors: yes
+
+- name: "Config : Create virsh network files"
+  template:
+    src: br-list.xml.j2
+    dest: /tmp/br{{ item }}.xml
+  with_items: "{{ vlan }}"
+
+- name: "Config : Define virsh network"
+  shell: "for i in $(find /tmp -type f -name br*); do virsh net-define $i; done"
+
+- name: "Config : Mark autostart and start virsh network"
+  shell: "virsh net-autostart br{{ item }} && virsh net-start br{{ item }}"
+  with_items: "{{ vlan }}"
+
+- name: "Config : Create virsh pool files"
+  template:
+    src: pool-list.xml.j2
+    dest: /tmp/pool-{{ item.pool }}.xml
+  with_items: "{{ virt_pool }}"
+
+- name: "Config : Define virsh pools"
+  shell: "for i in $(find /tmp -type f -name pool*); do virsh pool-define $i; done"
+  ignore_errors: yes
+
+- name: "Config : Autostart and start virsh pools"
+  shell: "virsh pool-autostart {{ item.name }} && virsh pool-start {{ item.name }}"
+  with_items: "{{ virt_pool }}"
+  ignore_errors: yes
+
+- name: "Config : Find tmp files for delete"
+  find:
+    paths: /tmp/
+    patterns: "*.xml"
+  register: files_to_delete
+
+- name: "Config : Remove tmp files"
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ files_to_delete.files }}"

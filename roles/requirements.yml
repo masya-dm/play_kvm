@@ -1,0 +1,5 @@
+---
+ - src: git@git.1cupis.org:git-cops/deployment/role_kvm.git
+   scm: git
+   version: master
+   name: role_kvm
